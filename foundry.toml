@@ -1,9 +1,16 @@
 [profile.default]
+fs_permissions = [
+  {access = "read", path = "./broadcast"},
+  {access = "read", path = "./reports"},
+]
 libs = ["lib"]
 out = "out"
 remappings = [
   '@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/src/',
 ]
 src = "src"
+
+[fuzz]
+runs = 300
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

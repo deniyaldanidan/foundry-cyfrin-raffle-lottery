@@ -22,7 +22,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__RaffleUpkeepNotNeeded(
         uint256 balance,
         uint256 playersLength,
-        uint256 raffleState
+        uint256 raffleState,
+        bool timeHasPassed
     );
 
     // - Type Declarations
@@ -49,6 +50,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     // - events
     event RaffleEntered(address indexed player);
     event WinnerPicked(address indexed winner);
+    event RequestedRaffleWinner(uint256 indexed requestId);
 
     constructor(
         uint256 entranceFee,
@@ -116,7 +118,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
             revert Raffle__RaffleUpkeepNotNeeded(
                 address(this).balance,
                 s_players.length,
-                uint256(s_raffeState)
+                uint256(s_raffeState),
+                (block.timestamp - s_lastTimeStamp) >= i_interval
             );
         }
         s_raffeState = RaffleState.CALCULATING;
@@ -135,8 +138,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false}) // now it will use LINK
                 )
             });
-        // uint256 requestId = s_vrfCoordinator.requestRandomWords(randomWordsReq);
-        s_vrfCoordinator.requestRandomWords(randomWordsReq);
+        // s_vrfCoordinator.requestRandomWords(randomWordsReq);
+        uint256 requestId = s_vrfCoordinator.requestRandomWords(randomWordsReq);
+        emit RequestedRaffleWinner(requestId);
     }
 
     function fulfillRandomWords(
@@ -163,5 +167,21 @@ contract Raffle is VRFConsumerBaseV2Plus {
      */
     function getEntranceFee() external view returns (uint256) {
         return i_entranceFee;
+    }
+
+    function getRaffleState() external view returns (RaffleState) {
+        return s_raffeState;
+    }
+
+    function getPlayer(uint256 indexOfPlayer) external view returns (address) {
+        return s_players[indexOfPlayer];
+    }
+
+    function getLastTimeStamp() external view returns (uint256) {
+        return s_lastTimeStamp;
+    }
+
+    function getRecentWinner() external view returns (address) {
+        return s_recentWinner;
     }
 }

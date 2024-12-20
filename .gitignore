@@ -15,3 +15,5 @@ docs/
 .env
 trash-notes.md
 lib/
+
+coverage.txt
